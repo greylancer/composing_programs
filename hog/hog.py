@@ -22,7 +22,24 @@ def roll_dice(num_rolls, dice=six_sided):
     assert type(num_rolls) == int, 'num_rolls must be an integer.'
     assert num_rolls > 0, 'Must roll at least once.'
     "*** YOUR CODE HERE ***"
+    dice_sum = 0
+    for i in range(num_rolls):
+        dice_outcome = dice()
+        if dice_outcome == 1:
+            return 1
+        else:
+            dice_sum += dice_outcome
+    return dice_sum
 
+def max_digit(opponent_score):
+    max_num = 0
+    current_num = opponent_score
+    while current_num > 0:
+        digit = current_num % 10
+        if digit > max_num:
+            max_num = digit
+        current_num //= 10
+    return max_num
 
 def take_turn(num_rolls, opponent_score, dice=six_sided):
     """Simulate a turn rolling NUM_ROLLS dice, which may be 0 (Free bacon).
@@ -36,6 +53,10 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert num_rolls <= 10, 'Cannot roll more than 10 dice.'
     assert opponent_score < 100, 'The game should be over.'
     "*** YOUR CODE HERE ***"
+    if num_rolls == 0:
+        return max_digit(opponent_score) + 1
+    else:
+        return roll_dice(num_rolls, dice)
 
 # Playing a game
 
@@ -51,6 +72,10 @@ def select_dice(score, opponent_score):
     True
     """
     "*** YOUR CODE HERE ***"
+    if (score + opponent_score) % 7 == 0:
+        return four_sided
+    else:
+        return six_sided
 
 def other(who):
     """Return the other player, for a player WHO numbered 0 or 1.
@@ -76,6 +101,16 @@ def play(strategy0, strategy1, goal=GOAL_SCORE):
     who = 0  # Which player is about to take a turn, 0 (first) or 1 (second)
     score, opponent_score = 0, 0
     "*** YOUR CODE HERE ***"
+    while score < 100 and opponent_score < 100:
+        if who == 0:
+            score += take_turn(strategy0(score, opponent_score), opponent_score, select_dice(score, opponent_score))
+        else:
+            opponent_score += take_turn(strategy1(opponent_score, score), score, select_dice(opponent_score, score))
+
+        if score == 2 * opponent_score or opponent_score == 2 * score:
+            score, opponent_score = opponent_score, score
+
+        who = other(who)
     return score, opponent_score  # You may wish to change this line.
 
 #######################
